@@ -83,7 +83,7 @@ async function handleSend(e) {
     sendBtn.disabled = true;
 
     // Fetch AI response
-    const reply = await getAIResponse(conversationHistory);
+    const reply = await getAIResponse(conversationHistory, currentUser ? currentUser.uid : null);
 
     // Remove typing
     typingIndicator.classList.remove('active');

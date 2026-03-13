@@ -1,4 +1,4 @@
-export async function getAIResponse(messagesArray) {
+export async function getAIResponse(messagesArray, userId = null) {
     try {
         const response = await fetch('/api/chat', {
             method: 'POST',
@@ -6,7 +6,8 @@ export async function getAIResponse(messagesArray) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                messages: messagesArray
+                messages: messagesArray,
+                userId: userId
             })
         });
 
