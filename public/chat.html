@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دليل - المحادثة</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="chat-container">
+        
+        <!-- Sidebar -->
+        <aside class="chat-sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-graduation-cap"></i>
+                <h2>دليل</h2>
+            </div>
+            
+            <button class="new-chat-btn" onclick="window.location.reload();">
+                <i class="fas fa-plus"></i> محادثة جديدة
+            </button>
+            
+            <button id="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+            </button>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-wrapper">
+            <header>
+                <h2 class="subtitle">مرشدك في التربية غير المنهجية</h2>
+            </header>
+
+            <div class="suggestions-container" id="suggestions">
+                <button class="suggestion-chip"><i class="fas fa-bolt"></i> اقترح نشاطا سريعا</button>
+                <button class="suggestion-chip"><i class="fas fa-snowflake"></i> لعبة لكسر الجليد</button>
+                <button class="suggestion-chip"><i class="fas fa-flag"></i> نشاط لتعزيز القيادة</button>
+                <button class="suggestion-chip"><i class="fas fa-users"></i> مبادرة طلابية</button>
+            </div>
+
+            <div class="chat-history" id="chat-history">
+                <!-- Messages added dynamically via app.js -->
+            </div>
+
+            <div class="typing-container" id="typing-indicator-container">
+                <div class="avatar ai"><i class="fas fa-robot"></i></div>
+                <div class="typing-text">دليل يكتب...</div>
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+            <div class="chat-input-wrapper">
+                <form id="chat-form">
+                    <textarea id="message-input" placeholder="اكتب رسالتك هنا لدليل..." rows="1" required></textarea>
+                    <button type="submit" id="send-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </main>
+        
+    </div>
+
+    <!-- Logic -->
+    <script type="module" src="firebase.js"></script>
+    <script type="module" src="ai.js"></script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>

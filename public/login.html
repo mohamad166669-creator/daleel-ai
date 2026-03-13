@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>دليل - تسجيل الدخول</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="login-split-container">
+
+        <!-- Right Side (Visual Left in RTL) - Aesthetics -->
+        <div class="login-hero">
+            <div class="hero-glass-shape hero-shape-1"></div>
+            <div class="hero-glass-shape hero-shape-2"></div>
+
+            <div class="hero-content">
+                <h1>دليل</h1>
+                <h2>مرشدك الأساسي في التربية غير المنهجية</h2>
+                <p>صُمّم "دليل" ليكون مساعدك الذكي الأول في تخطيط وبناء الأنشطة المدرسية، المبادرات الشبابية، وكسر
+                    الجليد بطرق إبداعية وتفاعلية.</p>
+            </div>
+        </div>
+
+        <!-- Left Side (Visual Right in RTL) - Login Form -->
+        <div class="login-form-side">
+            <div class="login-card">
+                <h3>أهلاً بك من جديد </h3>
+                <p>سجّل الدخول بحساب Google للمتابعة وتجربة أحدث أساليب التخطيط التربوي.</p>
+
+                <button id="google-login-btn" class="google-btn">
+                    <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo">
+                    تسجيل الدخول باستخدام Google
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Logic -->
+    <script type="module" src="firebase.js"></script>
+    <script type="module">
+        import { loginWithGoogle } from './firebase.js';
+
+        document.getElementById('google-login-btn').addEventListener('click', async () => {
+            await loginWithGoogle();
+        });
+    </script>
+</body>
+
+</html>
