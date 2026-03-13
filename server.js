@@ -12,18 +12,32 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Initialize Gemini API
-const ai = new GoogleGenAI({ 
-    apiKey: process.env.GEMINI_API_KEY 
-});
-
-// Daleel System Prompt
-app.use(express.static('public'));
-
 // Initialize Groq Client
 const groq = new Groq({
     apiKey: process.env.GROQ_API_KEY
 });
+
+// Setup FlexSearch for local RAG
+const index = new Document({
+    document: {
+        id: "id",
+        index: ["text"]
+    },
+    tokenize: "strict", // Strict tokenization split by whitespace
+    encode: false // Keep Arabic characters intact
+});
+
+const CHUNKS_FILE = path.join(__dirname, 'chunks.json');
+let knowledgeBase = [];
+
+if (fs.existsSync(CHUNKS_FILE)) {
+    console.log("Loading Knowledge Base...");
+    knowledgeBase = JSON.parse(fs.readFileSync(CHUNKS_FILE, 'utf8'));
+    knowledgeBase.forEach(chunk => {
+        index.add(chunk);
+    });
+    console.log(`Loaded ${knowledgeBase.length} text chunks into local search index.`);
+}
 
 // System Prompt for "Daleel"
 const DALEEL_SYSTEM_PROMPT = `أنت مساعد ذكاء اصطناعي تعليمي متخصص اسمك "دليل".
@@ -132,26 +146,6 @@ const DALEEL_SYSTEM_PROMPT = `أنت مساعد ذكاء اصطناعي تعلي
 - لا تكتب فقرات طويلة
 - استخدم نقاط أو خطوات عند الحاجة`;
 
-// Helper format function, Groq format is the same as OpenAI (role: 'system'/'user'/'assistant', content: string)
-function formatMessagesForGroq(conversationHistory) {
-    const formattedHistory = [
-        {
-            role: "system",
-            content: DALEEL_SYSTEM_PROMPT
-        }
-    ];
-
-    for (const msg of conversationHistory) {
-        if (msg.role === 'user' || msg.role === 'assistant') {
-            formattedHistory.push({
-                role: msg.role,
-                content: msg.content
-            });
-        }
-    }
-    return formattedHistory;
-}
-
 // In-memory store for rate limiting
 const userLimits = new Map();
 
@@ -181,11 +175,40 @@ app.post('/api/chat', async (req, res) => {
             userLimits.set(userId, userData);
         }
 
-        const formattedMessages = formatMessagesForGroq(messages);
+        // --- RAG SEARCH LOGIC ---
+        const userLatestMessage = messages[messages.length - 1].content;
+        const searchResults = index.search(userLatestMessage, 5); // Retrieve top 5 matched chunks
+        
+        let contextText = "";
+        if (searchResults.length > 0 && searchResults[0].result.length > 0) {
+            const matchedIds = searchResults[0].result;
+            const matchedChunks = knowledgeBase.filter(c => matchedIds.includes(c.id));
+            contextText = matchedChunks.map(c => `[النص المستخرج من ملف: ${c.source}]\n${c.text}`).join('\n\n');
+        }
 
+        let dynamicSystemPrompt = DALEEL_SYSTEM_PROMPT;
+        if (contextText) {
+            dynamicSystemPrompt += `\n\n=== مكتبة معلومات "دليل" الحصرية ===\nلقد بحثنا في مراجع الدورة ووجدنا المعلومات التالية المتعلقة بسؤال الطالب. اعتمد عليها بقوة في إجابتك إذا كانت تفيده:\n\n${contextText}\n====================================`;
+        }
+
+        // Prepare History for Groq
+        const formattedMessages = [
+            { role: "system", content: dynamicSystemPrompt }
+        ];
+        
+        for (const msg of messages) {
+            if (msg.role === 'user' || msg.role === 'assistant') {
+                formattedMessages.push({
+                    role: msg.role,
+                    content: msg.content
+                });
+            }
+        }
+
+        // Call Llama 3 on Groq
         const chatCompletion = await groq.chat.completions.create({
             messages: formattedMessages,
-            model: "llama3-8b-8192", // Using an incredibly fast open-source Llama 3 model
+            model: "llama3-8b-8192", 
             temperature: 0.7,
             max_tokens: 1024,
             top_p: 1,
